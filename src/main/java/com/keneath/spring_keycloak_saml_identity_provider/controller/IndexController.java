@@ -54,6 +54,7 @@ public class IndexController {
             model.addAttribute("SAMLRequest", null);
             model.addAttribute("SAMLRequestOrigin", null);
         }
+
         return "loginPage";
     }
 
