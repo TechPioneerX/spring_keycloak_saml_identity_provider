@@ -1,0 +1,91 @@
+<!-- loginPage.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External Idp Login</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Optional: include a custom CSS file to override Bootstrap styles if necessary -->
+    <!-- <link rel="stylesheet" href="path/to/your/custom.css"> -->
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin: auto;
+            background-color: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .form-signin {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin: auto;
+        }
+
+        .form-signin .form-control {
+            position: relative;
+            box-sizing: border-box;
+            height: auto;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .form-signin .form-control:focus {
+            z-index: 2;
+        }
+
+        .form-signin input[type="email"] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .form-signin input[type="password"] {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <form class="form-signin" action="/loginAction" method="post">
+        <h2 class="text-center mb-4">External Java module Idp Log In</h2>
+        <div class="form-group">
+            <label for="username" class="sr-only">Username or email</label>
+            <input type="text" id="username" name="username" class="form-control" placeholder="Username or email" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="password" class="sr-only">Password</label>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
+        <input type="hidden" id="SAMLRequest" name="SAMLRequest" th:value="${SAMLRequest}"/>
+        <input type="hidden" id="SAMLRequestOrigin" name="SAMLRequestOrigin" th:value="${SAMLRequestOrigin}"/>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
+        <div class="form-group mt-4">
+            <!-- Display the value of SAMLRequest attribute -->
+            <p style="word-wrap: break-word;">Value of SAMLRequest: <span th:text="${SAMLRequest}"></span></p>
+            <!-- Display the value of SAMLRequestOrigin attribute -->
+            <p style="word-wrap: break-word;">Value of SAMLRequestOrigin: <span th:text="${SAMLRequestOrigin}"></span></p>
+        </div>
+    </form>
+</div>
+<!-- Include Bootstrap JS and its dependencies (Optional if you need responsive design or Bootstrap components that require JS like modals) -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
