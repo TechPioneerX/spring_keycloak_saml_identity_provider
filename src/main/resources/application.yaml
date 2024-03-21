@@ -1,0 +1,17 @@
+### server port
+server:
+  port: 8082
+  servlet:
+    context-path: /
+
+## logging
+logging:
+  level:
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n"
+
+## keycloak
+spring:
+  main:
+    allow-circular-references: true
