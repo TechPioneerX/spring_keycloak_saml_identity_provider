@@ -29,10 +29,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.opensaml</groupId>
             <artifactId>opensaml-saml-impl</artifactId>
             <version>3.1.0</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml</artifactId>
+            <version>2.5.1-1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security.extensions</groupId>
@@ -69,5 +74,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

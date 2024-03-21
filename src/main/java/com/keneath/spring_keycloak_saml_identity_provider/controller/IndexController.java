@@ -3,9 +3,13 @@ package com.keneath.spring_keycloak_saml_identity_provider.controller;
 import com.keneath.spring_keycloak_saml_identity_provider.Utils.CommonUtil;
 import com.keneath.spring_keycloak_saml_identity_provider.Utils.Response;
 import com.keneath.spring_keycloak_saml_identity_provider.model.ExternalUser;
+import com.keneath.spring_keycloak_saml_identity_provider.service.impl.AssertionBuilder;
+import com.keneath.spring_keycloak_saml_identity_provider.service.impl.AssertionSigner;
 import com.keneath.spring_keycloak_saml_identity_provider.service.impl.ExternalApiServiceImpl;
 import com.keneath.spring_keycloak_saml_identity_provider.service.impl.SamlServiceImpl;
-import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.Assertion;
+import org.opensaml.xml.io.MarshallingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
 import java.util.Base64;
 
 @Controller
@@ -29,6 +34,12 @@ public class IndexController {
 
     @Autowired
     private SamlServiceImpl samlService;
+
+    @Autowired
+    private AssertionBuilder assertionBuilder;
+
+    @Autowired
+    private AssertionSigner assertionSigner;
 
     @GetMapping("/loginPage")
     public String showLoginForm(@RequestParam(name = "SAMLRequest", required = false) String samlRequest, Model model) throws Exception {
@@ -50,7 +61,7 @@ public class IndexController {
     public ResponseEntity<Response<String>> doLogin(
             @RequestParam("username") String username,
             @RequestParam("password") String password,
-            @RequestParam("SAMLRequest") String samlRequest) {
+            @RequestParam("SAMLRequest") String samlRequest) throws MarshallingException, IOException {
 
         AuthnRequest authnRequest = samlService.parseSamlRequest( samlRequest );
         if( authnRequest == null )
@@ -62,7 +73,8 @@ public class IndexController {
                     )
             );
 
-        String samlConsumerUrl = authnRequest.getIssuer().getValue();
+        String samlConsumerUrl = authnRequest.getAssertionConsumerServiceURL();
+        log.info("\nAssertion Consumer Service URL: \n" + samlConsumerUrl + "\n");
 
         ExternalUser externalUser = externalApiService.checkValidateUser( username, password );
         if( externalUser.getStatus() == 0 )
@@ -74,6 +86,17 @@ public class IndexController {
                     )
             );
         log.info("\nUser authenticated: \n" + externalUser.getUser() + "\n");
+
+        // Create assertion
+        Assertion assertion = assertionBuilder.buildAssertion(
+                username,
+                username,
+                CommonUtil.uuidGenerator(),
+                externalUser.getUser(),
+                externalUser.getProfile());
+
+        // Sign assertion
+        String signedAssertion = assertionSigner.signAssertion( assertion );
 
         return ResponseEntity.ok(new Response<>(
                 HttpStatus.OK.value(),

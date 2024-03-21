@@ -15,8 +15,20 @@ logging:
 spring:
   main:
     allow-circular-references: true
+
 ## External API
 externalAPI:
   url:
     base: https://testapi.cgo.cl
     validateUser: /users/validate
+
+## SAML
+saml:
+  keystore:
+    path: classpath:/saml/keystore.jks
+    password: 123456
+    alias: spring_client
+  url:
+    idp: http://localhost:8081
+  session:
+    maxSessionTimeoutInMinutes: 5

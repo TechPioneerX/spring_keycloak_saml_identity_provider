@@ -1,11 +1,13 @@
 package com.keneath.spring_keycloak_saml_identity_provider.service.impl;
 
 import com.keneath.spring_keycloak_saml_identity_provider.service.SamlService;
-import org.opensaml.core.config.InitializationService;
-import org.opensaml.core.xml.XMLObject;
-import org.opensaml.core.xml.io.Unmarshaller;
-import org.opensaml.core.xml.io.UnmarshallerFactory;
-import org.opensaml.saml.saml2.core.AuthnRequest;
+
+import org.opensaml.Configuration;
+import org.opensaml.DefaultBootstrap;
+import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.xml.XMLObject;
+import org.opensaml.xml.io.Unmarshaller;
+import org.opensaml.xml.io.UnmarshallerFactory;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -21,7 +23,7 @@ public class SamlServiceImpl implements SamlService {
     public AuthnRequest parseSamlRequest(String samlRequestXml) {
         try {
             // Initialize OpenSAML
-            InitializationService.initialize();
+            DefaultBootstrap.bootstrap();
 
             // Parse XML
             ByteArrayInputStream stream = new ByteArrayInputStream(samlRequestXml.getBytes());
@@ -32,7 +34,7 @@ public class SamlServiceImpl implements SamlService {
             Element samlElem = samlDocument.getDocumentElement();
 
             // Get unmarshaller
-            UnmarshallerFactory unmarshallerFactory = org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport.getUnmarshallerFactory();
+            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(samlElem);
             if (unmarshaller != null) {
                 // Unmarshall the element
