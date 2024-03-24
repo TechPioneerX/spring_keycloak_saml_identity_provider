@@ -1,5 +1,6 @@
 package com.keneath.spring_keycloak_saml_identity_provider.service.impl;
 
+import com.keneath.spring_keycloak_saml_identity_provider.Utils.CommonUtil;
 import com.keneath.spring_keycloak_saml_identity_provider.model.SamlInputContainer;
 import org.joda.time.DateTime;
 import org.opensaml.Configuration;
@@ -47,7 +48,9 @@ public class AssertionBuilder {
             String nameQualifier,
             String sessionId,
             String firstName,
-            String lastName ) {
+            String lastName,
+            String requestId,
+            String recipientUrl ) {
 
         SamlInputContainer input = new SamlInputContainer();
         input.setStrIssuer(assertionIssuer);
@@ -55,6 +58,8 @@ public class AssertionBuilder {
         input.setStrNameQualifier(nameQualifier);
         input.setSessionId(sessionId);
         input.setMaxSessionTimeoutInMinutes(maxSessionTimeoutInMinutes);
+        input.setRequestId( requestId );
+        input.setRecipientUrl( recipientUrl );
 
         Map<String, Object> customAttributes = new HashMap<>();
         customAttributes.put("FirstName", firstName);
@@ -107,15 +112,17 @@ public class AssertionBuilder {
             nameId.setFormat(NameID.UNSPECIFIED);
 
             // Create the SubjectConfirmation
-
             SAMLObjectBuilder confirmationMethodBuilder = (SAMLObjectBuilder) AssertionBuilder.getSAMLBuilder().getBuilder(SubjectConfirmationData.DEFAULT_ELEMENT_NAME);
             SubjectConfirmationData confirmationMethod = (SubjectConfirmationData) confirmationMethodBuilder.buildObject();
             DateTime now = new DateTime();
             confirmationMethod.setNotBefore(now);
             confirmationMethod.setNotOnOrAfter(now.plusMinutes(2));
+            confirmationMethod.setRecipient(input.getRecipientUrl());
+            confirmationMethod.setInResponseTo(input.getRequestId());
 
             SAMLObjectBuilder subjectConfirmationBuilder = (SAMLObjectBuilder) AssertionBuilder.getSAMLBuilder().getBuilder(SubjectConfirmation.DEFAULT_ELEMENT_NAME);
             SubjectConfirmation subjectConfirmation = (SubjectConfirmation) subjectConfirmationBuilder.buildObject();
+            subjectConfirmation.setMethod("urn:oasis:names:tc:SAML:2.0:cm:bearer");
             subjectConfirmation.setSubjectConfirmationData(confirmationMethod);
 
             // Create the Subject
@@ -128,8 +135,6 @@ public class AssertionBuilder {
             // Create Authentication Statement
             SAMLObjectBuilder authStatementBuilder = (SAMLObjectBuilder) AssertionBuilder.getSAMLBuilder().getBuilder(AuthnStatement.DEFAULT_ELEMENT_NAME);
             AuthnStatement authnStatement = (AuthnStatement) authStatementBuilder.buildObject();
-            //authnStatement.setSubject(subject);
-            //authnStatement.setAuthenticationMethod(strAuthMethod);
             DateTime now2 = new DateTime();
             authnStatement.setAuthnInstant(now2);
             authnStatement.setSessionIndex(input.getSessionId());
@@ -175,10 +180,11 @@ public class AssertionBuilder {
             // Create the assertion
             SAMLObjectBuilder assertionBuilder = (SAMLObjectBuilder) AssertionBuilder.getSAMLBuilder().getBuilder(Assertion.DEFAULT_ELEMENT_NAME);
             Assertion assertion = (Assertion) assertionBuilder.buildObject();
+            assertion.setID(CommonUtil.uuidGenerator());
             assertion.setIssuer(issuer);
             assertion.setIssueInstant(now);
             assertion.setVersion(SAMLVersion.VERSION_20);
-
+            assertion.setSubject(subject);
             assertion.getAuthnStatements().add(authnStatement);
             assertion.getAttributeStatements().add(attrStatement);
             assertion.setConditions(conditions);
@@ -194,13 +200,17 @@ public class AssertionBuilder {
                                     String nameQualifier,
                                     String sessionId,
                                     String firstName,
-                                    String lastName) throws MarshallingException {
+                                    String lastName,
+                                    String requestId,
+                                    String recipientUrl) throws MarshallingException {
         Assertion assertion = getSamlAssertion(
                 username,
                 nameQualifier,
                 sessionId,
                 firstName,
-                lastName
+                lastName,
+                requestId,
+                recipientUrl
         );
         AssertionMarshaller marshaller = new AssertionMarshaller();
         Element plaintextElement = marshaller.marshall(assertion);

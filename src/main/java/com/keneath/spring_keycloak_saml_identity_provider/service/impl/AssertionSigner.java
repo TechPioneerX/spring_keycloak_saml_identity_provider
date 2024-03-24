@@ -1,17 +1,23 @@
 package com.keneath.spring_keycloak_saml_identity_provider.service.impl;
 
+import com.keneath.spring_keycloak_saml_identity_provider.Utils.CommonUtil;
+import org.joda.time.DateTime;
 import org.opensaml.Configuration;
 import org.opensaml.DefaultBootstrap;
+import org.opensaml.common.impl.SAMLObjectContentReference;
 import org.opensaml.liberty.paos.impl.ResponseMarshaller;
 import org.opensaml.saml2.core.Assertion;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.xml.ConfigurationException;
+import org.opensaml.xml.encryption.EncryptionConstants;
 import org.opensaml.xml.io.MarshallingException;
 import org.opensaml.xml.security.SecurityConfiguration;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.security.x509.BasicX509Credential;
+import org.opensaml.xml.signature.DigestMethod;
 import org.opensaml.xml.signature.Signature;
+import org.opensaml.xml.signature.SignatureConstants;
 import org.opensaml.xml.signature.Signer;
 import org.opensaml.xml.util.XMLHelper;
 import org.slf4j.Logger;
@@ -109,6 +115,8 @@ public class AssertionSigner {
                 .buildObject(Signature.DEFAULT_ELEMENT_NAME);
 
         signature.setSigningCredential(signingCredential);
+        signature.setSignatureAlgorithm(SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA256);
+        signature.setCanonicalizationAlgorithm(SignatureConstants.ALGO_ID_C14N_EXCL_OMIT_COMMENTS);
 
         // This is also the default if a null SecurityConfiguration is specified
         SecurityConfiguration secConfig = Configuration.getGlobalSecurityConfiguration();
@@ -126,8 +134,13 @@ public class AssertionSigner {
                 .buildObject(Response.DEFAULT_ELEMENT_NAME);
 
         resp.getAssertions().add(assertion);
-
+        resp.setID(CommonUtil.uuidGenerator());
+        resp.setIssueInstant(new DateTime());
         resp.setSignature(signature);
+
+        // Create the DigestMethod object and set the algorithm to SHA-256
+        ((SAMLObjectContentReference)signature.getContentReferences().get(0))
+                .setDigestAlgorithm(EncryptionConstants.ALGO_ID_DIGEST_SHA256);
 
         try {
             Configuration.getMarshallerFactory()

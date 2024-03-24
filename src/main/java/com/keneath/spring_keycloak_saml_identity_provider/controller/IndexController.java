@@ -77,6 +77,8 @@ public class IndexController {
         String samlConsumerUrl = authnRequest.getAssertionConsumerServiceURL();
         log.info("\nAssertion Consumer Service URL: \n" + samlConsumerUrl + "\n");
 
+        String requestId = authnRequest.getID();
+
         ExternalUser externalUser = externalApiService.checkValidateUser( username, password );
         if( externalUser.getStatus() == 0 )
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
@@ -94,10 +96,26 @@ public class IndexController {
                 username,
                 CommonUtil.uuidGenerator(),
                 externalUser.getUser(),
-                externalUser.getProfile());
+                externalUser.getProfile(),
+                requestId,
+                samlConsumerUrl);
 
         // Sign assertion
         String signedAssertion = assertionSigner.signAssertion( assertion );
+
+        // Encode the SAML response using Base64
+        String encodedSamlResponse = Base64.getEncoder().encodeToString(signedAssertion.getBytes());
+
+        // Construct the HTML form
+        String htmlForm = "<form method=\"post\" action=\"" + samlConsumerUrl + "\" ...>" +
+                "<input type=\"hidden\" name=\"SAMLResponse\" value=\"" + encodedSamlResponse + "\" />" +
+                "<input type=\"hidden\" name=\"RelayState\" value=\"token\" />" +
+                // Add other form fields or controls if needed
+                "<input type=\"submit\" value=\"Submit\" />" +
+                "</form>";
+
+        // Print the HTML form
+        System.out.println(htmlForm);
 
         return ResponseEntity.ok(new Response<>(
                 HttpStatus.OK.value(),

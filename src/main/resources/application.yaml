@@ -27,8 +27,8 @@ saml:
   keystore:
     path: classpath:/saml/keystore.jks
     password: 123456
-    alias: spring_client
+    alias: client_java_module
   url:
-    idp: http://localhost:8081
+    idp: http://localhost:8082
   session:
     maxSessionTimeoutInMinutes: 5
